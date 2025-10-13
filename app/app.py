@@ -33,7 +33,7 @@ def ana():
     return render_template("index.html")
 
 @app.route("/hub")
-def ana():
+def hub():
     return render_template("hub.html")
 @app.route("/admingiris",methods=['POST', 'GET'])
 def girisadmin():
