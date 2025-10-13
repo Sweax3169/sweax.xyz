@@ -61,7 +61,6 @@ def girisadmin():
 
       # else:
 
-
       #     cursor = mysql.connection.cursor()
 
 
