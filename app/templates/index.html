@@ -1,14 +1,264 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <title>LEGELA</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>sweax.ai — Yakında Açılıyor</title>
+  <meta name="description" content="sweax.ai — Yeni nesil yapay zekâ asistanı. Kumru'ya meydan okuyor, sizi şaşırtmaya geliyor!" />
+  <link rel="icon" href="/static/favicon.ico" />
+  <style>
+    :root {
+      --bg1: #030814;
+      --bg2: #0d1528;
+      --accent1: #00e0ff;
+      --accent2: #6d00ff;
+      --text: #f5f8ff;
+      --muted: #a6b4d1;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: 'Poppins', sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 30%, rgba(0,224,255,0.15), transparent 70%),
+                  radial-gradient(circle at 80% 120%, rgba(109,0,255,0.15), transparent 70%),
+                  linear-gradient(180deg, var(--bg1), var(--bg2));
+      overflow-x: hidden;
+    }
+
+    .container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 30px;
+    }
+
+    .logo-text {
+      font-size: clamp(52px, 10vw, 110px);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 40px rgba(0,224,255,0.5);
+      letter-spacing: 1.5px;
+      animation: glow 4s ease-in-out infinite;
+    }
+
+    @keyframes glow {
+      0%, 100% { text-shadow: 0 0 40px rgba(0,224,255,0.5), 0 0 80px rgba(109,0,255,0.3); }
+      50% { text-shadow: 0 0 80px rgba(0,224,255,0.8), 0 0 120px rgba(109,0,255,0.6); }
+    }
+
+    .tagline {
+      margin-top: 20px;
+      font-size: clamp(20px, 3vw, 30px);
+      color: var(--muted);
+      max-width: 800px;
+      line-height: 1.5;
+    }
+    .tagline2 {
+      margin-top: 20px;
+      font-size: clamp(35px, 3vw, 50px);
+      color: var(--muted);
+      max-width: 800px;
+      line-height: 1.5;
+    }
+
+    .highlight {
+      margin-top: 30px;
+      font-size: clamp(22px, 3vw, 36px);
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 25px rgba(0,224,255,0.4);
+      letter-spacing: 0.5px;
+    }
+
+    .highlight span {
+      display: block;
+      font-size: clamp(18px, 2.5vw, 24px);
+      font-weight: 600;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .countdown {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 50px;
+    }
+
+    .time-box {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      width: 110px;
+      padding: 20px 10px;
+      backdrop-filter: blur(12px);
+      transition: transform 0.3s;
+    }
+
+    .time-box:hover { transform: scale(1.08); }
+
+    .time-num {
+      font-size: 36px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .time-label {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    .features {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 25px;
+      margin-top: 60px;
+      width: 100%;
+      max-width: 950px;
+    }
+
+    .feature {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 25px 30px;
+      flex: 1 1 300px;
+      max-width: 420px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    .feature:hover { transform: translateY(-8px); box-shadow: 0 10px 30px rgba(0,224,255,0.15); }
+
+    .feature h3 {
+      font-size: 26px;
+      color: var(--accent1);
+      margin-bottom: 10px;
+    }
+
+    .feature p {
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .discord {
+      margin-top: 60px;
+      font-size: 18px;
+      color: var(--muted);
+    }
+
+    .discord a {
+      color: var(--accent1);
+      text-decoration: none;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(0,224,255,0.5);
+    }
+
+    footer {
+      margin-top: 80px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .devby {
+      margin-top: 10px;
+      font-size: 16px;
+      color: var(--accent1);
+      font-weight: 700;
+    }
+
+    @media (max-width: 600px) {
+      .logo-text { font-size: 70px; }
+      .feature h3 { font-size: 22px; }
+      .feature p { font-size: 14px; }
+      .time-box { width: 85px; padding: 15px 5px; }
+      .time-num { font-size: 28px; }
+    }
+  </style>
 </head>
-<body style="text-align:center; font-family:Arial;">
-<h1 style="color:BLUE">MERHAB DOSTUM</h1>
-<h2 style="color:red">YUSUFU SEVİOM BAZEN "SOMETİMES" </h2>
-<img src="{{ url_for('static', filename='img/fotooo.png') }}" alt="Fotoğraf" width="500px" height="600px">
+<body>
+  <div class="container">
+    <div class="logo-text">sweax.ai</div>
+    <p class="tagline">Bir yapay zekâ için dev şirketler gerekmez dev paralar yetmez. Bir gencin tutkusu yeter </p>
+ <h1 class="tagline2">sweax.ai yakında sizlerle...</h1>
+    <div class="highlight">
+      💥 KUMRU'YA SADECE RAKİP DEĞİL, <br> ONU GÖLGEDE BIRAKACAK YAPAY ZEKÂ GELİYOR!
+      <span>Sizi şaşırtacak, düşündürecek ve eğlendirecek bir deneyim.</span>
+    </div>
 
+    <div class="countdown">
+      <div class="time-box"><div class="time-num" id="days">--</div><div class="time-label">Gün</div></div>
+      <div class="time-box"><div class="time-num" id="hours">--</div><div class="time-label">Saat</div></div>
+      <div class="time-box"><div class="time-num" id="minutes">--</div><div class="time-label">Dakika</div></div>
+      <div class="time-box"><div class="time-num" id="seconds">--</div><div class="time-label">Saniye</div></div>
+    </div>
 
+    <div class="features">
+      <div class="feature">
+        <h3>⚡ Hızlı Sohbet</h3>
+        <p>Basit ama etkileyici bir deneyim. Sohbet et, öğren, eğlen.</p>
+      </div>
+      <div class="feature">
+        <h3>🔐 Gizlilik</h3>
+        <p>Verilerinizi toplamaz, paylaşmaz. Sadece sizinle kalır.</p>
+      </div>
+    </div>
+
+    <div class="discord">Sorularınız için Discord üzerinden ulaşın: <a href="https://discord.com/users/sweax00">@sweax00</a></div>
+
+    <footer>
+      <div>© <span id="year"></span> sweax.ai — Tüm hakları saklıdır.</div>
+      <div class="devby">Developed by Sweax 🚀</div>
+    </footer>
+  </div>
+
+  <script>
+    const launchDate = new Date('2025-11-13T12:00:00+03:00');
+    const $ = id => document.getElementById(id);
+
+    function updateCountdown() {
+      const now = new Date();
+      const diff = launchDate - now;
+      if (diff <= 0) {
+        $('days').textContent = '00';
+        $('hours').textContent = '00';
+        $('minutes').textContent = '00';
+        $('seconds').textContent = '00';
+        return;
+      }
+      const s = Math.floor(diff / 1000);
+      const d = Math.floor(s / 86400);
+      const h = Math.floor((s % 86400) / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      $('days').textContent = String(d).padStart(2, '0');
+      $('hours').textContent = String(h).padStart(2, '0');
+      $('minutes').textContent = String(m).padStart(2, '0');
+      $('seconds').textContent = String(sec).padStart(2, '0');
+    }
+
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
