@@ -82,8 +82,8 @@ def register():
         conn.close()
 
         # otomatik login
-        session["user"] = kullaniciadi
-        return redirect(url_for("ai"))
+        #session["user"] = kullaniciadi
+        return redirect(url_for("login"))
 
     return render_template("register.html")
 

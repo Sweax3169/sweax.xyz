@@ -1,10 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>$Title$</title>
+  <title>Admin Paneli - Sweax.AI</title>
+  <style>
+    body{background:#111;color:#fff;font-family:Arial;padding:20px;}
+    label{display:block;margin:8px 0;}
+  </style>
 </head>
 <body>
-$END$
+  <h2>⚙️ Admin Paneli</h2>
+  <form method="POST">
+    <label>
+      <input type="checkbox" name="adana_mod" value="1" {% if ayarlar.adana_mod %}checked{% endif %}>
+      Adanalı Modu
+    </label>
+    <label>
+      Argo Seviyesi:
+      <select name="argo_seviyesi">
+        <option value="0" {% if ayarlar.argo_seviyesi==0 %}selected{% endif %}>0 – Kibar</option>
+        <option value="1" {% if ayarlar.argo_seviyesi==1 %}selected{% endif %}>1 – Orta</option>
+        <option value="2" {% if ayarlar.argo_seviyesi==2 %}selected{% endif %}>2 – Sert</option>
+      </select>
+    </label>
+    <label>
+      <input type="checkbox" name="sil" value="1"> Tüm geçmişi sil
+    </label>
+    <button type="submit">Kaydet</button>
+  </form>
+
+  <hr>
+  <h3>🧠 Geçmiş Konuşmalar</h3>
+  {% for m in gecmis %}
+    <p><b>{{m.role}}:</b> {{m.content}}</p>
+  {% else %}
+    <p>Henüz konuşma yok.</p>
+  {% endfor %}
+  <p><a href="/" style="color:#f90;">← Geri Dön</a></p>
 </body>
 </html>
