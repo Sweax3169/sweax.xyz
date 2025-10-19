@@ -37,18 +37,19 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
- html, body {
+html, body {
   height: 100%;
   min-height: 100%;
-  background-color: #0f0f0f; /* dark base */
+  background-color: #0f0f0f;
   background-image: linear-gradient(135deg, var(--bg1), var(--bg2));
   background-repeat: no-repeat;
-  background-size: cover;
-  background-attachment: scroll;
+  background-size: 100% 100%;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-}   html, body {
+  overflow-y: auto;
+}
+html, body {
       height: 100%;
       background: linear-gradient(135deg, var(--bg1), var(--bg2));
       color: var(--txt);
@@ -96,13 +97,12 @@
     .theme-toggle:hover {
       transform: rotate(20deg);
     }
-
 .layout {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 160px); /* header ve paddingi hesaba katıyor */
+  min-height: 100dvh;
   padding: 120px 6% 40px;
   gap: 60px;
 }
