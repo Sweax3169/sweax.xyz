@@ -43,11 +43,15 @@ html, body {
   background-color: #0f0f0f;
   background-image: linear-gradient(135deg, var(--bg1), var(--bg2));
   background-repeat: no-repeat;
-  background-size: 100% 100%;
+  background-size: cover;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
   overflow-y: auto;
+
+
+  padding-bottom: env(safe-area-inset-bottom);
+  background-attachment: fixed;
 }
 
     header {
@@ -96,8 +100,8 @@ html, body {
   grid-template-columns: 1.1fr 1fr;
   align-items: center;
   justify-content: center;
-  min-height: 100dvh;
-  padding: 120px 6% 40px;
+  min-height: 100dvh; /* zoom ve adres çubuğu dinamik yüksekliği */
+  padding: 120px 6% calc(40px + env(safe-area-inset-bottom)); /* alt güvenlik boşluğunu hesaba kat */
   gap: 60px;
 }
 
@@ -246,13 +250,13 @@ html, body {
   <main class="layout">
     <section class="info">
       <img src="/static/img/logo2.png" alt="sweax.ai Logo" />
-      <h1>Tekrar hoş geldin!</h1>
+      <h1 style="color:white;">Tekrar hoş geldin!</h1>
       <p>Seni yeniden görmek harika ❤️<br>Hemen giriş yap ve kaldığın yerden devam et.</p>
     </section>
 
     <section class="card">
       <div class="logo-top"><img src="/static/img/logoo.png" alt="Sweax AI" /></div>
-      <h2>Giriş Yap</h2>
+      <h2 style="color:white;">Giriş Yap</h2>
       <p class="subtext">Bilgilerini gir 👇</p>
          {% if err %}
       <div class="error-box active">⚠️ {{ err }}</div>

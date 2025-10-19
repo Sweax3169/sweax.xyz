@@ -43,11 +43,15 @@ html, body {
   background-color: #0f0f0f;
   background-image: linear-gradient(135deg, var(--bg1), var(--bg2));
   background-repeat: no-repeat;
-  background-size: 100% 100%;
+  background-size: cover;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
   overflow-y: auto;
+
+
+  padding-bottom: env(safe-area-inset-bottom);
+  background-attachment: fixed;
 }
 html, body {
       height: 100%;
@@ -102,8 +106,8 @@ html, body {
   grid-template-columns: 1.1fr 1fr;
   align-items: center;
   justify-content: center;
-  min-height: 100dvh;
-  padding: 120px 6% 40px;
+  min-height: 100dvh; /* zoom ve adres çubuğu dinamik yüksekliği */
+  padding: 120px 6% calc(40px + env(safe-area-inset-bottom)); /* alt güvenlik boşluğunu hesaba kat */
   gap: 60px;
 }
     @media(max-width: 900px) {
