@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sweax AI • Admin Panel</title>
+
+  {% raw %}
+  <style>
+    :root {
+      --bg1: #0e0e0f;
+      --bg2: #141416;
+      --accent: #10a37f;
+      --ai-bubble: rgba(255,255,255,0.06);
+      --admin-bubble: #10a37f;
+      --text: #f1f1f1;
+      --muted: #aaa;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
+    body {
+      background: linear-gradient(145deg, var(--bg1), var(--bg2));
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    header {
+      flex-shrink: 0;
+      text-align: center;
+      padding: 18px 10px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 16px 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scroll-behavior: smooth;
+    }
+
+    .msg {
+      max-width: 85%;
+      padding: 14px 16px;
+      border-radius: 16px;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      animation: fadeIn 0.3s ease both;
+      white-space: pre-line;
+      word-break: break-word;
+    }
+
+    .ai {
+      align-self: flex-start;
+      background: var(--ai-bubble);
+      border: 1px solid rgba(255,255,255,0.05);
+      box-shadow: 0 0 10px rgba(255,255,255,0.05);
+    }
+
+    .admin {
+      align-self: flex-end;
+      background: var(--admin-bubble);
+      color: #000;
+      box-shadow: 0 0 12px rgba(16,163,127,0.4);
+    }
+
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(20,20,20,0.85);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding: 12px;
+      display: flex;
+      gap: 10px;
+    }
+
+    input {
+      flex: 1;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 1rem;
+      outline: none;
+    }
+    input::placeholder { color: var(--muted); }
+
+    button {
+      background: var(--accent);
+      color: #000;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      padding: 0 22px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:hover { filter: brightness(1.15); }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media(max-width:600px){
+      header{font-size:1rem;padding:14px 8px;}
+      .msg{font-size:0.9rem;}
+      footer{padding:10px;}
+      button{padding:0 16px;}
+    }
+  </style>
+  {% endraw %}
+</head>
+
+<body>
+  <header>🧠 Sweax AI • Admin Panel</header>
+
+  <main id="chat">
+    <div class="msg ai">Hoş geldin {{ user }} 👋<br>Yapay zekayı test etmeye hazırsın.</div>
+  </main>
+
+  <footer>
+    <input id="input" placeholder="Bir şey yaz..." autocomplete="off">
+    <button id="send">Gönder</button>
+  </footer>
+
+  {% raw %}
+  <script>
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("input");
+    const send = document.getElementById("send");
+
+    async function gonder() {
+      const soru = input.value.trim();
+      if (!soru) return;
+      input.value = "";
+
+      const msgUser = document.createElement("div");
+      msgUser.className = "msg admin";
+      msgUser.textContent = soru;
+      chat.appendChild(msgUser);
+
+      const msgAI = document.createElement("div");
+      msgAI.className = "msg ai";
+      msgAI.innerHTML = "<span style='opacity:0.6;'>Yapay zeka düşünüyor...</span>";
+      chat.appendChild(msgAI);
+      chat.scrollTop = chat.scrollHeight;
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: soru })
+        });
+        const data = await res.json();
+        msgAI.textContent = data.answer || "⚠️ Bir hata oluştu.";
+      } catch (e) {
+        msgAI.textContent = "⚠️ Sunucuya bağlanılamadı.";
+      }
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    send.addEventListener("click", gonder);
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") gonder();
+    });
+  </script>
+  {% endraw %}
+</body>
+</html>

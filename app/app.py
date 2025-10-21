@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, session
-
+from flask import Flask, render_template, request, redirect, url_for, session ,jsonify
+from sweax_ai import konus
 import os
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -7,11 +7,12 @@ app = Flask(__name__)
 app.secret_key = "313131"
 
 veritaban = os.path.join(os.path.dirname(__file__),"sweax.db")
-
+print("Kayıt yapılacak DB yolu:", os.path.abspath(veritaban))
 def get_db():
     conn = sqlite3.connect(veritaban)
     conn.row_factory = sqlite3.Row
     return conn
+# ============== USER TABLOSU ==================
 
 def init_db():
     conn = get_db()
@@ -27,6 +28,27 @@ def init_db():
     """)
     conn.commit()
     conn.close()
+# ============== ADMIN TABLOSU ==================
+def init_admin():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS admin (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            kullaniciadi TEXT UNIQUE NOT NULL,
+            sifre_hash TEXT NOT NULL
+        )
+    """)
+    cur.execute("SELECT * FROM admin WHERE kullaniciadi = ?", ("admin",))
+    if not cur.fetchone():
+        cur.execute(
+            "INSERT INTO admin (kullaniciadi, sifre_hash) VALUES (?, ?)",
+            ("admin", generate_password_hash("1234"))
+        )
+        print("✅ Varsayılan admin oluşturuldu: admin / 1234")
+    conn.commit()
+    conn.close()
+# ============== ROUTES ==================
 
 
 #def veritabanbasla():
@@ -52,7 +74,50 @@ def init_db():
 @app.route("/")
 def ana():
     return render_template("index.html")
+# ----------- ADMIN GİRİŞ -------------
+@app.route("/admingiris", methods=["GET", "POST"])
+def admingiris():
+    if request.method == "POST":
+        k = request.form.get("kullaniciadi","").strip()
+        s = request.form.get("sifre","").strip()
+        conn=get_db(); cur=conn.cursor()
+        cur.execute("SELECT * FROM admin WHERE kullaniciadi=?",(k,))
+        row=cur.fetchone(); conn.close()
+        if row and check_password_hash(row["sifre_hash"], s):
+            session["admin"]=k
+            return redirect(url_for("adminindex"))
+        return render_template("admingiris.html", err="Bilgiler hatalı.")
+    return render_template("admingiris.html")
 
+# -------------------- Admin Panel (AI + HTML + API) --------------------
+@app.route("/adminindex")
+def adminindex():
+    if "admin" not in session:
+        return redirect(url_for("admingiris"))
+    return render_template("adminindex.html", user=session["admin"])
+
+@app.post("/api/chat")
+def api_chat():
+    if "admin" not in session:
+        return jsonify({"error": "Yetkisiz erişim"}), 403
+    data=request.get_json(force=True)
+    text=(data.get("text") or "").strip()
+    if not text:
+        return jsonify({"error": "Boş mesaj!"}),400
+    try:
+        cevap=konus(text)
+        return jsonify({"answer": cevap})
+    except Exception as e:
+        print("⚠️ Hata:",e)
+        return jsonify({"error": str(e)})
+
+@app.route("/admincikis")
+def admincikis():
+    session.pop("admin",None)
+    return redirect(url_for("admingiris"))
+
+
+# ----------- KULLANICI KISMI -------------
 @app.route("/kayıt", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -156,14 +221,11 @@ def hub():
 
 
 
-@app.route("/admin")
-def admin():
-    if "admin" not in session:
-        return redirect(url_for("admingiris"))
 
-    return render_template("admin.html")
+# ============== RUN ==================
 if __name__ == "__main__":
     init_db()
+    init_admin()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port,debug=True)
 

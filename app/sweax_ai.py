@@ -14,9 +14,9 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from sweaxrag import wiki_ozet, wiki_ozet_with_meta, rag_cevap_uret
 from sweax_db import veritabani_olustur, mesaj_ekle, mesajlari_getir
-
+import deepl
 OLLAMA = "http://localhost:11434/api/chat"
-
+SON_KONU = None
 # =============== Yardımcılar ===============
 def _guvenli_ifade_mi(metin: str) -> bool:
     return bool(re.fullmatch(r"[0-9\ \+\-\*\/\.\(\)]+", metin))
@@ -152,10 +152,54 @@ def _model_sec(metin: str) -> str:
         return "deepseek-r1:7b"
     return "qwen2.5:7b-instruct"
 
+
+DEEPL_KEY = "0db8f6b1-3a52-40d0-b303-54d3d2b114cf:fx"
+#çeviri
+
+def _deepl_cevir(metin: str) -> str | None:
+    """Kullanıcı 'çevir' derse DeepL API'yi kullanarak çeviri yapar (temizlenmiş)."""
+    s = metin.lower()
+    if "çevir" not in s:
+        return None
+
+    try:
+        translator = deepl.Translator(DEEPL_KEY)
+
+        # 🔹 Hedef dili belirle
+        diller = {
+            "türkçe": "TR", "ingilizce": "EN-US", "almanca": "DE", "fransızca": "FR",
+            "ispanyolca": "ES", "italyanca": "IT", "portekizce": "PT-PT",
+            "japonca": "JA", "korece": "KO", "çince": "ZH"
+        }
+        hedef = None
+        for ad, kod in diller.items():
+            if ad in s:
+                hedef = kod
+                break
+        hedef = hedef or "EN-US"
+
+        # 🔹 Çevrilecek cümleyi temizle
+        # örnek: "Lipton içmeyi çok seviyorum cümlesini Japoncaya çevir" →
+        # "Lipton içmeyi çok seviyorum"
+        temiz = metin
+        for ad in diller.keys():
+            temiz = temiz.replace(ad, "")
+        for kelime in ["çevir", "cümlesini", "diline", "dilinde", "dilene", "dilinde", "olarak"]:
+            temiz = temiz.replace(kelime, "")
+        temiz = temiz.strip().replace("  ", " ")
+
+        # 🔹 DeepL isteği
+        result = translator.translate_text(temiz, target_lang=hedef)
+        return f"🌐 Çeviri ({hedef}): {result.text}"
+
+    except Exception as e:
+        return f"⚠️ DeepL çeviri başarısız: {e}"
+
 # =============== Ana Akış ===============
 def konus(metin: str) -> str:
     """
     Ana akış:
+    0) DeepL çeviri
     1) Tarih/Saat → Doğrudan doğru cevap
     2) Matematik → Güvenli hesap
     3) Yemek tarifi → Yerleşik/RAG
@@ -163,11 +207,13 @@ def konus(metin: str) -> str:
     5) Diğer her şey → Model + RAG fallback
     6) Her adımda DB kaydı
     """
-    # ---- Bağlam hafızası
-    global SON_KONU
-    if not hasattr(globals(), "SON_KONU"):
-        SON_KONU = None
 
+    # 🔹 0) DeepL çeviri kontrolü — EN ÜSTE AL
+    ceviri = _deepl_cevir(metin)
+    if ceviri:
+        mesaj_ekle("user", metin)
+        mesaj_ekle("assistant", ceviri)
+        return ceviri
     # 1) Tarih/Saat
     ts = tarih_saat_cevap(metin)
     if ts is not None:
@@ -218,13 +264,13 @@ def konus(metin: str) -> str:
     ]
 
     if any(k in metin.lower() for k in bilgi_triggers):
+        global SON_KONU
         mode, fmt = _format_ayikla(metin)
         konu = _konu_adi_bul(metin, fallback=SON_KONU)
         if konu:
             cumle = _cumle_ayari(mode)
             meta = wiki_ozet_with_meta(konu, cumle=cumle)
 
-            # Eğer Wikipedia'dan veri yoksa uydurma bilgi verme!
             if not meta or not meta.get("text"):
                 mesaj_ekle("user", metin)
                 mesaj_ekle("assistant", "❌ Bu konu hakkında Wikipedia'da bilgi bulunamadı.")
@@ -237,6 +283,7 @@ def konus(metin: str) -> str:
             kaynak = meta.get("url") or "https://tr.wikipedia.org"
             baslik = meta.get("title") or konu
             yanit = f"📘 Kaynak: {kaynak}\n\n{text}"
+
             SON_KONU = baslik or konu
             mesaj_ekle("user", metin)
             mesaj_ekle("assistant", yanit)
