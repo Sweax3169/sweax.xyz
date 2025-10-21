@@ -12,7 +12,7 @@
 import re, requests
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
-from sweaxrag import wiki_ozet, wiki_ozet_with_meta, rag_cevap_uret
+from app.sweaxrag import wiki_ozet, wiki_ozet_with_meta, rag_cevap_uret
 from sweax_db import veritabani_olustur, mesaj_ekle, mesajlari_getir
 import deepl
 OLLAMA = "http://localhost:11434/api/chat"
