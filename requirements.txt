@@ -3,3 +3,4 @@ gunicorn
 flask-mysqldb
 werkzeug
 deepl
+numpy
