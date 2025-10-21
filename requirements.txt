@@ -4,3 +4,4 @@ flask-mysqldb
 werkzeug
 deepl
 numpy
+faiss-cpu
