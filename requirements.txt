@@ -5,3 +5,6 @@ werkzeug
 deepl
 numpy
 faiss-cpu
+beautifulsoup4
+sentence-transformers
+tzdata
