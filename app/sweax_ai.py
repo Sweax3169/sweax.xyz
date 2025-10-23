@@ -3,8 +3,16 @@
 import re, requests, os
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
-from sweaxrag import wiki_ozet, wiki_ozet_with_meta, rag_cevap_uret
-from sweax_db import veritabani_olustur, mesaj_ekle, mesajlari_getir
+try:
+
+    from app.sweaxrag import wiki_ozet, wiki_ozet_with_meta, rag_cevap_uret
+except ModuleNotFoundError:
+    from sweaxrag import wiki_ozet, wiki_ozet_with_meta, rag_cevap_uret
+try:
+
+    from app.sweax_db import veritabani_olustur, mesaj_ekle, mesajlari_getir
+except ModuleNotFoundError:
+    from sweax_db import veritabani_olustur, mesaj_ekle, mesajlari_getir
 
 OLLAMA = os.environ.get("OLLAMA_URL", "http://localhost:11434/api/chat")
 SON_KONU = None

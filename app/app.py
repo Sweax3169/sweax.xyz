@@ -1,6 +1,12 @@
+import sys, os
+sys.path.append(os.path.dirname(__file__))
 from flask import Flask, render_template, request, redirect, url_for, session ,jsonify
-from sweax_ai import konus
-import os
+try:
+    # Render'da çalışırken
+    from app.sweax_ai import konus
+except ModuleNotFoundError:
+    # Localde çalışırken
+    from sweax_ai import konus
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
