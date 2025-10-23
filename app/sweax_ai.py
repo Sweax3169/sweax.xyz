@@ -209,10 +209,20 @@ def konus(metin: str) -> str:
 
     try:
         veri = {"model": _model_sec(metin), "messages": mesajlar, "stream": False}
-        resp = requests.post(OLLAMA, json=veri, timeout=60).json()
-        model_cevap = resp.get("message",{}).get("content","")
+        r = requests.post(OLLAMA, json=veri, timeout=60)
+        r.raise_for_status()
+        try:
+            resp = r.json()
+            model_cevap = resp.get("message", {}).get("content", "")
+        except Exception as je:
+            print("⚠️ JSON çözümleme hatası:", je, "Yanıt metni:", r.text[:300])
+            model_cevap = "⚠️ Modelden geçersiz yanıt alındı."
+    except requests.exceptions.RequestException as re:
+        print("🌐 Bağlantı hatası:", re)
+        model_cevap = "🌐 Model bağlantısı başarısız (Render tüneline ulaşılamadı)."
     except Exception as e:
-        model_cevap = f"Bir hata oluştu: {e}"
+        print("🔥 Genel hata:", e)
+        model_cevap = f"⚠️ Beklenmedik hata: {e}"
 
     model_cevap = _turkce_filtrele(model_cevap)
     yanit = rag_cevap_uret(metin, model_cevap)
