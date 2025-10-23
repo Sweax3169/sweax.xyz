@@ -1,10 +1,5 @@
 flask
 gunicorn
-flask-mysqldb
 werkzeug
-deepl
-numpy
-faiss-cpu
-beautifulsoup4
-sentence-transformers
 tzdata
+requests

@@ -6,7 +6,7 @@
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path("app/sweax.db")
+DB_PATH = Path("sweax.db")
 
 def db_baglan():
     """
