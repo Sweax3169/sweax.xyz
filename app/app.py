@@ -1,4 +1,5 @@
-import sys, os
+import os, sys
+os.makedirs("/data", exist_ok=True) if os.path.exists("/data") else None
 sys.path.append(os.path.dirname(__file__))
 from flask import Flask, render_template, request, redirect, url_for, session ,jsonify
 try:
@@ -12,7 +13,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
 app.secret_key = "313131"
 
-veritaban = os.path.join(os.path.dirname(__file__),"sweax.db")
+# Render'da kalıcı depolama (veya localde app klasörüne)
+veritabanklasor = "/data" if os.path.exists("/data") else os.path.dirname(__file__)
+veritaban = os.path.join(veritabanklasor, "sweax.db")
+print("Kayıt yapılacak DB yolu:", os.path.abspath(veritaban))
 print("Kayıt yapılacak DB yolu:", os.path.abspath(veritaban))
 def get_db():
     conn = sqlite3.connect(veritaban)
