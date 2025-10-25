@@ -3,8 +3,11 @@
 # sweaxai.py'daki konus() fonksiyonunu web üzerinden çağırır.
 
 from flask import Flask, render_template, request, jsonify
+try:
 
-from sweax_ai import konus
+    from app.sweax_ai import konus
+except Exception:
+    from sweax_ai import konus
 from sweax_db import veritabani_olustur
 
 app = Flask(__name__)

@@ -3,3 +3,4 @@ gunicorn
 werkzeug
 tzdata
 requests
+deepl

@@ -3,6 +3,7 @@
 import re, requests, os
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+import deepl
 try:
 
     from app.sweaxrag import wiki_ozet, wiki_ozet_with_meta, rag_cevap_uret
@@ -56,6 +57,10 @@ YERLESIK_TARIFLER = {
         "3) Yumurtaları ekle; karıştırarak ya da bütün bırakıp pişir.",
         "4) Tuzla tadını ayarla; istersen pul biber/peynir."
     ],
+    "arda":[
+        "evet arda orospuçocuğudur"
+    ]
+    ,
     "pilav": [
         "Malzemeler: 1 sb pirinç, 1.5 sb sıcak su, 1 YK tereyağı, 1 YK sıvı yağ, tuz.",
         "1) Pirinci 10-15 dk ılık suda beklet, süz.",
@@ -116,35 +121,47 @@ def _model_sec(metin: str) -> str:
         return os.environ.get("LLM_MATH_MODEL", "deepseek-r1:7b")
     return os.environ.get("LLM_DEFAULT_MODEL", "qwen2.5:7b-instruct")
 
-# ===== DeepL — lazy import =====
-DEEPL_KEY = os.environ.get("DEEPL_KEY")  # anahtarı ortam değişkenine al
+DEEPL_KEY = "0db8f6b1-3a52-40d0-b303-54d3d2b114cf:fx"
+#çeviri
+
 def _deepl_cevir(metin: str) -> str | None:
-    if "çevir" not in metin.lower():
+    """Kullanıcı 'çevir' derse DeepL API'yi kullanarak çeviri yapar (temizlenmiş)."""
+    s = metin.lower()
+    if "çevir" not in s:
         return None
-    if not DEEPL_KEY:
-        return "⚠️ Çeviri için DeepL anahtarı tanımlı değil (DEEPL_KEY)."
+
     try:
-        import deepl  # lazy import
         translator = deepl.Translator(DEEPL_KEY)
+
+        # 🔹 Hedef dili belirle
         diller = {
-            "türkçe":"TR","ingilizce":"EN-US","almanca":"DE","fransızca":"FR",
-            "ispanyolca":"ES","italyanca":"IT","portekizce":"PT-PT","japonca":"JA",
-            "korece":"KO","çince":"ZH"
+            "türkçe": "TR", "ingilizce": "EN-US", "almanca": "DE", "fransızca": "FR",
+            "ispanyolca": "ES", "italyanca": "IT", "portekizce": "PT-PT",
+            "japonca": "JA", "korece": "KO", "çince": "ZH"
         }
         hedef = None
-        s = metin.lower()
-        for ad,kod in diller.items():
-            if ad in s: hedef = kod; break
+        for ad, kod in diller.items():
+            if ad in s:
+                hedef = kod
+                break
         hedef = hedef or "EN-US"
+
+        # 🔹 Çevrilecek cümleyi temizle
+        # örnek: "Lipton içmeyi çok seviyorum cümlesini Japoncaya çevir" →
+        # "Lipton içmeyi çok seviyorum"
         temiz = metin
-        for ad in diller: temiz = temiz.replace(ad, "")
-        for kel in ["çevir","cümlesini","diline","dilinde","olarak"]: temiz = temiz.replace(kel, "")
-        temiz = temiz.strip().replace("  "," ")
+        for ad in diller.keys():
+            temiz = temiz.replace(ad, "")
+        for kelime in ["çevir", "cümlesini", "diline", "dilinde", "dilene", "dilinde", "olarak"]:
+            temiz = temiz.replace(kelime, "")
+        temiz = temiz.strip().replace("  ", " ")
+
+        # 🔹 DeepL isteği
         result = translator.translate_text(temiz, target_lang=hedef)
         return f"🌐 Çeviri ({hedef}): {result.text}"
+
     except Exception as e:
         return f"⚠️ DeepL çeviri başarısız: {e}"
-
 # ===== Ana Akış =====
 def konus(metin: str) -> str:
     # 0) Çeviri
