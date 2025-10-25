@@ -4,16 +4,64 @@ import re, requests, os
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 import deepl
-try:
 
+# ============ YENİ: MySQL bağlantısı db_conn.py üzerinden ============
+try:
+    from app.db_conn import get_db
+except ModuleNotFoundError:
+    from db_conn import get_db
+# ====================================================================
+
+try:
     from app.sweaxrag import wiki_ozet, wiki_ozet_with_meta, rag_cevap_uret
 except ModuleNotFoundError:
     from sweaxrag import wiki_ozet, wiki_ozet_with_meta, rag_cevap_uret
-try:
 
-    from app.sweax_db import veritabani_olustur, mesaj_ekle, mesajlari_getir
-except ModuleNotFoundError:
-    from sweax_db import veritabani_olustur, mesaj_ekle, mesajlari_getir
+# ====== VERİTABANI FONKSİYONLARI (Railway MySQL uyumlu) ======
+def veritabani_olustur():
+    """
+    SQLite'taki gibi dosya oluşturma yerine MySQL tablolarını kontrol eder.
+    Tablolar zaten Render/Railway üzerinde oluşturulmuş olmalı.
+    """
+    try:
+        with get_db() as conn, conn.cursor() as cur:
+            cur.execute("SELECT 1")  # Bağlantı testi
+        print("✅ MySQL bağlantısı başarılı (veritabani_olustur testi).")
+    except Exception as e:
+        print(f"⚠️ Veritabanı bağlantısı başarısız: {e}")
+
+def mesaj_ekle(rol: str, icerik: str):
+    """
+    Kullanıcı veya yapay zekâ mesajını messages tablosuna ekler.
+    (Geçici: tüm mesajlar varsayılan sohbet kimliği 1 altında tutulur.)
+    """
+    try:
+        with get_db() as conn, conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO messages (conversation_id, role, content)
+                VALUES (%s, %s, %s)
+            """, (1, rol, icerik))
+    except Exception as e:
+        print(f"⚠️ mesaj_ekle hata: {e}")
+
+def mesajlari_getir(limit: int = 5):
+    """
+    En son X mesajı getirir (conversation_id = 1 varsayılan sohbet).
+    """
+    try:
+        with get_db() as conn, conn.cursor() as cur:
+            cur.execute("""
+                SELECT role, content FROM messages
+                WHERE conversation_id = 1
+                ORDER BY id DESC
+                LIMIT %s
+            """, (limit,))
+            rows = cur.fetchall()
+            return list(reversed(rows))
+    except Exception as e:
+        print(f"⚠️ mesajlari_getir hata: {e}")
+        return []
+# ===============================================================
 
 OLLAMA = os.environ.get("OLLAMA_URL", "http://localhost:11434/api/chat")
 SON_KONU = None
@@ -48,7 +96,7 @@ def tarih_saat_cevap(metin: str) -> str | None:
     if "dün tarih" in s:    t = now - timedelta(days=1); return f"Dün: {t:%d.%m.%Y}"
     return None
 
-# ===== Yerleşik tarifler (değişmedi) =====
+# ===== Yerleşik tarifler =====
 YERLESIK_TARIFLER = {
     "menemen": [
         "Malzemeler: 3 domates, 3 yumurta, 2 sivri biber, 1 yemek kaşığı tereyağı, tuz.",
@@ -57,10 +105,7 @@ YERLESIK_TARIFLER = {
         "3) Yumurtaları ekle; karıştırarak ya da bütün bırakıp pişir.",
         "4) Tuzla tadını ayarla; istersen pul biber/peynir."
     ],
-    "arda":[
-        "evet arda orospuçocuğudur"
-    ]
-    ,
+    "arda":[ "evet arda orospuçocuğudur" ],
     "pilav": [
         "Malzemeler: 1 sb pirinç, 1.5 sb sıcak su, 1 YK tereyağı, 1 YK sıvı yağ, tuz.",
         "1) Pirinci 10-15 dk ılık suda beklet, süz.",
@@ -123,17 +168,13 @@ def _model_sec(metin: str) -> str:
 
 DEEPL_KEY = "0db8f6b1-3a52-40d0-b303-54d3d2b114cf:fx"
 #çeviri
-
 def _deepl_cevir(metin: str) -> str | None:
     """Kullanıcı 'çevir' derse DeepL API'yi kullanarak çeviri yapar (temizlenmiş)."""
     s = metin.lower()
     if "çevir" not in s:
         return None
-
     try:
         translator = deepl.Translator(DEEPL_KEY)
-
-        # 🔹 Hedef dili belirle
         diller = {
             "türkçe": "TR", "ingilizce": "EN-US", "almanca": "DE", "fransızca": "FR",
             "ispanyolca": "ES", "italyanca": "IT", "portekizce": "PT-PT",
@@ -142,53 +183,36 @@ def _deepl_cevir(metin: str) -> str | None:
         hedef = None
         for ad, kod in diller.items():
             if ad in s:
-                hedef = kod
-                break
+                hedef = kod; break
         hedef = hedef or "EN-US"
-
-        # 🔹 Çevrilecek cümleyi temizle
-        # örnek: "Lipton içmeyi çok seviyorum cümlesini Japoncaya çevir" →
-        # "Lipton içmeyi çok seviyorum"
         temiz = metin
-        for ad in diller.keys():
-            temiz = temiz.replace(ad, "")
-        for kelime in ["çevir", "cümlesini", "diline", "dilinde", "dilene", "dilinde", "olarak"]:
+        for ad in diller.keys(): temiz = temiz.replace(ad, "")
+        for kelime in ["çevir", "cümlesini", "diline", "dilinde", "dilene", "olarak"]:
             temiz = temiz.replace(kelime, "")
         temiz = temiz.strip().replace("  ", " ")
-
-        # 🔹 DeepL isteği
         result = translator.translate_text(temiz, target_lang=hedef)
         return f"🌐 Çeviri ({hedef}): {result.text}"
-
     except Exception as e:
         return f"⚠️ DeepL çeviri başarısız: {e}"
+
 # ===== Ana Akış =====
 def konus(metin: str) -> str:
-    # 0) Çeviri
     ceviri = _deepl_cevir(metin)
     if ceviri:
         mesaj_ekle("user", metin); mesaj_ekle("assistant", ceviri)
         return ceviri
-
-    # 1) Tarih/Saat
     ts = tarih_saat_cevap(metin)
     if ts is not None:
         mesaj_ekle("user", metin); mesaj_ekle("assistant", ts)
         return ts
-
-    # 2) Matematik
     if _guvenli_ifade_mi(metin):
         yanit = _hesapla(metin)
         mesaj_ekle("user", metin); mesaj_ekle("assistant", yanit)
         return yanit
-
-    # 3) Yemek tarifi
     tf = yemek_tarifi(metin)
     if tf is not None:
         mesaj_ekle("user", metin); mesaj_ekle("assistant", tf)
         return tf
-
-    # 4) Bilgi modu (Wikipedia öncelik)
     bilgi_triggers = [
         "kimdir","hayatı","hayatını","biyografisi","kim","kimin",
         "nerede doğdu","nerede öldü","ne zaman doğdu","ne zaman öldü",
@@ -215,15 +239,10 @@ def konus(metin: str) -> str:
             yanit = f"📘 Kaynak: {kaynak}\n\n{text}"
             mesaj_ekle("user", metin); mesaj_ekle("assistant", yanit)
             return yanit
-
-    # 5) Model + RAG (genel)
-    son = mesajlari_getir(5)  # RAM/istek boyutu için 10 → 5
+    son = mesajlari_getir(5)
     mesajlar = [{"role": m["role"], "content": m["content"]} for m in son]
-    mesajlar.insert(0, {"role":"system","content":
-        "Sadece Türkçe yanıt ver. Uydurma bilgi verme; bilmiyorsan söyle. Kısa ve net ol."
-    })
+    mesajlar.insert(0, {"role":"system","content":"Sadece Türkçe yanıt ver. Uydurma bilgi verme; bilmiyorsan söyle. Kısa ve net ol."})
     mesajlar.append({"role": "user", "content": metin})
-
     try:
         veri = {"model": _model_sec(metin), "messages": mesajlar, "stream": False}
         r = requests.post(OLLAMA, json=veri, timeout=60)
@@ -240,7 +259,6 @@ def konus(metin: str) -> str:
     except Exception as e:
         print("🔥 Genel hata:", e)
         model_cevap = f"⚠️ Beklenmedik hata: {e}"
-
     model_cevap = _turkce_filtrele(model_cevap)
     yanit = rag_cevap_uret(metin, model_cevap)
     mesaj_ekle("user", metin); mesaj_ekle("assistant", yanit)
