@@ -446,7 +446,7 @@ def konus(metin: str, kullanici_id: int | None = None) -> str:
     mesaj_ekle(kullanici_id, "assistant", yanit, sohbet_id)
     if yanit.count("http") >= 1 and len(yanit) < 800:
         try:
-            # ChatGPT tarzı özetleme için modeli tekrar çağır
+
             mesajlar.append({
                 "role": "system",
                 "content": (

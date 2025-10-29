@@ -300,7 +300,7 @@ def web_ara_genel(soru: str, max_results: int = 3) -> str | None:
 
 def web_ara_serper(soru: str, max_results: int = 3) -> str | None:
     """
-    Serper.dev Google Search API — Markdown tabanlı ChatGPT tarzı kart stili sonuç
+    Serper.dev Google Search API —
     """
     import requests, os
     SERPER_KEY = os.getenv("SERPER_KEY", "60616d6ea2b6da230c1930c4817a755439d44cba")
