@@ -11,4 +11,4 @@ def yeni_admin_ekle(kullaniciadi, sifre):
         print(f"✅ Yeni admin eklendi: {kullaniciadi}")
 
 # Örnek kullanım:
-yeni_admin_ekle("yusuf", "1!HmP?t_h%o//v")
+yeni_admin_ekle("deep", "1!HmP?t_h%o//v")

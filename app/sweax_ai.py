@@ -365,7 +365,7 @@ def konus(metin: str, kullanici_id: int | None = None) -> str:
 
             # 🧠 Eğer Wikipedia'da sonuç yoksa veya çok kısa ise → web fallback
             if not meta or not meta.get("text") or len(meta.get("text", "")) < 80:
-                from sweaxrag import web_fallback_ara
+
                 yanit = web_fallback_ara(metin)
                 mesaj_ekle(kullanici_id, "user", metin, sohbet_id)
                 mesaj_ekle(kullanici_id, "assistant", yanit, sohbet_id)
