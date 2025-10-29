@@ -181,7 +181,7 @@ def sweax_ai():
     """Kullanıcı giriş yaptıysa AI arayüzünü açar."""
     if "user_id" not in session:
         return redirect(url_for("giris"))
-    return render_template("sweax_ai.html", kullanici=session["user"])
+    return render_template("sweax.ai.html", kullanici=session["user"])
 
 # 📨 Mesaj gönderme (AJAX)
 @app.route("/api/ai_mesaj", methods=["POST"])
