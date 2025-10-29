@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sweax.AI - Akıllı Sohbet Asistanı</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- FAVICON - favicon.ico dosyanızı kök dizine yerleştirin -->
+  <link rel="icon" type="image/x-icon" href="static/img/favicon.ico">
+  <style>
+    :root {
+      --primary: #9A031E;
+      --primary-dark: #7A0015;
+      --primary-light: #B52B3D;
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #1a1a1a;
+      --bg-tertiary: #2a2a2a;
+      --text-primary: #f5f5f5;
+      --text-secondary: #d0d0d0;
+      --text-muted: #8a8a8a;
+      --border: #333333;
+      --border-light: #444444;
+      --success: #10b981;
+      --error: #ef4444;
+      --ai-msg-bg: #1a1a1a;
+      --user-msg-bg: #9A031E;
+      --sidebar-width: 280px;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      --transition: all 0.2s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      line-height: 1.5;
+    }
+
+    /* SOL MENÜ */
+    #sidebar {
+      width: var(--sidebar-width);
+      flex-shrink: 0;
+      background: var(--bg-secondary);
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      transition: var(--transition);
+      z-index: 10;
+    }
+
+    #sidebar header {
+      padding: 20px 16px;
+      font-weight: 700;
+      font-size: 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    }
+
+    #sidebar header i {
+      color: white;
+      font-size: 20px;
+    }
+
+    #sidebar .new {
+      margin: 16px;
+      background: var(--primary);
+      border: none;
+      border-radius: var(--radius-md);
+      color: white;
+      font-weight: 600;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    #sidebar .new:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    #sidebar .new:active {
+      transform: translateY(0);
+    }
+  .new-main {
+  background: linear-gradient(135deg, #5c0010, #7a0015); /* daha koyu bordo geçiş */
+  color: #f5f5f5;
+  font-size: 14px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+  transition: all 0.25s ease;
+}
+
+.new-main:hover {
+  background: linear-gradient(135deg, #7a0015, #9a031e);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(154, 3, 30, 0.3);
+}
+
+.new-main i {
+  font-size: 16px;
+  opacity: 0.9;
+}
+    #chatList {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    #chatList button {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      padding: 12px 14px;
+      margin-bottom: 4px;
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      font-size: 14px;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #chatList button::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 3px;
+      background: var(--primary);
+      transform: scaleY(0);
+      transition: var(--transition);
+    }
+
+    #chatList button:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    #chatList button:hover::before,
+    #chatList button.active::before {
+      transform: scaleY(1);
+    }
+
+    #chatList button.active {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    #chatList button i {
+      margin-right: 10px;
+      font-size: 14px;
+      opacity: 0.7;
+    }
+    #sidebar footer {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 14px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #sidebar footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: var(--transition);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+    }
+
+    #sidebar footer a:hover {
+      color: var(--text-primary);
+      background: var(--bg-tertiary);
+    }
+
+    /* ANA BÖLÜM */
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      scroll-behavior: smooth;
+      background: var(--bg-primary);
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state h2 {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .empty-state p {
+      max-width: 400px;
+      margin-bottom: 24px;
+    }
+
+    .msg {
+      max-width: 85%;
+      margin-bottom: 24px;
+      padding: 16px 20px;
+      border-radius: var(--radius-lg);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 15px;
+      position: relative;
+      box-shadow: var(--shadow);
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .ai {
+      background: var(--ai-msg-bg);
+      color: var(--text-primary);
+      border-bottom-left-radius: var(--radius-sm);
+    }
+
+    .ai::before {
+      content: 'Sweax.AI';
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    .user {
+      background: var(--user-msg-bg);
+      color: white;
+      align-self: flex-end;
+      margin-left: auto;
+      border-bottom-right-radius: var(--radius-sm);
+    }
+
+    .user::before {
+      content: 'Siz';
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 6px;
+    }
+
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      background: var(--ai-msg-bg);
+      border-radius: var(--radius-lg);
+      border-bottom-left-radius: var(--radius-sm);
+      max-width: 85%;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .typing-indicator::before {
+      content: 'Sweax.AI';
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 6px;
+      position: absolute;
+      top: 16px;
+      left: 20px;
+    }
+
+    .typing-dots {
+      display: flex;
+      margin-top: 20px;
+    }
+
+    .typing-dots span {
+      height: 8px;
+      width: 8px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: block;
+      margin: 0 3px;
+      animation: typing 1s infinite ease-in-out;
+    }
+
+    .typing-dots span:nth-child(1) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dots span:nth-child(2) {
+      animation-delay: 0.4s;
+    }
+
+    .typing-dots span:nth-child(3) {
+      animation-delay: 0.6s;
+    }
+
+    @keyframes typing {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-5px);
+      }
+    }
+
+    /* ALT GÖNDERME ALANI */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 20px;
+      background: var(--bg-primary);
+    }
+
+    #composerBox {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      align-items: flex-end;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 12px 16px;
+      transition: var(--transition);
+      box-shadow: var(--shadow);
+    }
+
+    #composerBox:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(154, 3, 30, 0.2);
+    }
+
+    textarea {
+      flex: 1;
+      background: transparent;
+      color: var(--text-primary);
+      border: none;
+      resize: none;
+      outline: none;
+      font-family: inherit;
+      font-size: 15px;
+      line-height: 1.5;
+      padding: 8px;
+      max-height: 120px;
+    }
+
+    textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    button.send {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 10px 16px;
+      margin-left: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button.send:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    button.send:active {
+      transform: translateY(0);
+    }
+
+    button.send:disabled {
+      background: var(--text-muted);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--border-light);
+    }
+
+    /* Mobil Uyumluluk */
+    .mobile-header {
+      display: none;
+      padding: 16px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mobile-header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mobile-menu-btn {
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 900px) {
+      #sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100%;
+        transform: translateX(-100%);
+      }
+
+      #sidebar.active {
+        transform: translateX(0);
+      }
+
+      .mobile-header {
+        display: flex;
+      }
+
+      #main {
+        width: 100%;
+      }
+
+      .msg {
+        max-width: 90%;
+      }
+    }
+
+    /* Türk Kırmızısı teması için ek stiller */
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-icon {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-icon i {
+      color: white;
+      font-size: 12px;
+    }
+
+    /* Logo alanları */
+    .logo-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      color: var(--text-muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .logo-large {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 20px;
+    }
+
+    .logo-medium {
+      width: 40px;
+      height: 40px;
+    }
+
+    .logo-small {
+      width: 24px;
+      height: 24px;
+    }
+
+    /* Ek bordo aksanlar */
+    .accent-line {
+      height: 3px;
+      width: 40px;
+      background: var(--primary);
+      margin-top: 5px;
+      border-radius: 2px;
+    }
+
+    .accent-dot {
+      height: 8px;
+      width: 8px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    /* Türk teması için özel dekorasyon */
+    .turkish-pattern {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 150px;
+      height: 150px;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath fill='%239A031E' d='M50,30a20,20 0 1,0 0,40a20,20 0 1,0 0,-40'/%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+      pointer-events: none;
+    }
+  .msg.ai {
+  font-size:17px;
+  line-height:1.8;
+  color:#f2f2f2;
+}
+
+.ai-section-title {
+  font-size:18px;
+  font-weight:700;
+  margin-bottom:8px;
+  color:#f6f6f6;
+  border-left:3px solid #9A031E;
+  padding-left:8px;
+}
+
+.ai-card {
+  background:#151515;
+  border:1px solid #242424;
+  border-radius:12px;
+  padding:10px 14px;
+  margin:8px 0;
+  transition:all 0.25s ease;
+}
+.ai-card:hover {
+  border-color:#9A031E;
+  transform:translateY(-2px);
+}
+.ai-card-header {
+  font-size:14px;
+  color:#ccc;
+  margin-bottom:4px;
+}
+.ai-card-title {
+  font-size:15px;
+  color:#fff;
+  font-weight:600;
+  display:block;
+  margin-bottom:4px;
+}
+.ai-card-body p {
+  font-size:15px;
+  color:#d4d4d4;
+  margin:0;
+}
+.ai-summary {
+  background:linear-gradient(to right,#1a1a1a,#131313);
+  border:1px solid #2a2a2a;
+  border-radius:12px;
+  padding:14px 18px;
+  font-size:17px;
+  line-height:1.8;
+  font-weight:500;
+  color:#fff;
+  margin-top:12px;
+  box-shadow:0 0 20px rgba(0,0,0,0.2);
+}
+.ai-summary strong {
+  color:#ff435b;
+}
+.ai-sources {
+  font-size:13px;
+  color:#aaa;
+  margin-top:6px;
+  border-top:1px solid #2b2b2b;
+  padding-top:6px;
+}
+  </style>
+</head>
+<body>
+  <aside id="sidebar">
+    <header>
+      <div class="logo">
+        <!-- LOGO 1 - Sidebar başlık logosu (24x24px önerilir) -->
+        <div class="logo-medium">
+
+            <!-- Buraya logo1.png veya logo1.svg ekleyin -->
+            <img src="/static/img/seffaf.png" alt="Sweax.AI Logo" style="width:100%;height:100%;object-fit:contain;">
+
+        </div>
+        <span>Sweax.AI</span>
+      </div>
+    </header>
+    <button class="new" onclick="yeniSohbet()">
+      <i class="fas fa-plus"></i>
+      Yeni Sohbet
+    </button>
+    <div id="chatList"></div>
+    <footer>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <!-- LOGO 3 - Footer logosu (20x20px önerilir) -->
+        <div class="logo-small">
+
+
+            <!-- Buraya logo3.png veya logo3.svg ekleyin -->
+            <img src="/static/img/favicon.png" alt="Footer Logo" style="width:100%;height:100%;object-fit:contain;">
+
+        </div>
+        <div>{{ kullanici }}</div>
+      </div>
+      <a href="/cikis">
+        <i class="fas fa-sign-out-alt"></i>
+        Çıkış
+      </a>
+    </footer>
+  </aside>
+
+  <section id="main">
+    <div class="mobile-header">
+      <h1>
+        <!-- LOGO 1 - Mobil başlık logosu (24x24px önerilir) -->
+        <div class="logo-medium">
+          <div class="logo-placeholder">
+            LOGO 1
+            <!-- Buraya logo1.png veya logo1.svg ekleyin -->
+            <!-- <img src="logo1.png" alt="Sweax.AI Logo" style="width:100%;height:100%;object-fit:contain;"> -->
+          </div>
+        </div>
+        <span>Sweax.AI</span>
+      </h1>
+      <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+
+    <div id="messages">
+      <div class="empty-state">
+        <!-- LOGO 2 - Boş durum ekranı logosu (120x120px önerilir) -->
+       <div class="logo-large" style="width:200px;height:160px;margin:0 auto 30px;">
+  <img src="/static/img/logoo.png" alt="Sweax.AI Large Logo" style="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 10px rgba(0,0,0,0.4));">
+</div>
+        <h2>Sweax.AI'ye Hoş Geldiniz</h2>
+        <p>Yapay zeka asistanınızla sohbet etmeye başlamak için yeni bir sohbet başlatın veya geçmiş sohbetlerinizden birine tıklayın.</p>
+       <button class="new new-main" onclick="yeniSohbet()">
+  <i class="fas fa-plus"></i>
+  Yeni Sohbet Başlat
+</button>
+      </div>
+      <div class="turkish-pattern"></div>
+    </div>
+
+    <footer>
+      <div id="composerBox">
+        <textarea id="mesaj" rows="1" placeholder="Sweax.AI'ye mesajınızı yazın..."></textarea>
+        <button class="send" onclick="gonder()" id="sendBtn">
+          <i class="fas fa-paper-plane"></i>
+          Gönder
+        </button>
+      </div>
+    </footer>
+  </section>
+
+  <script>
+    // Basit markdown parser
+function markdownToHTML(text) {
+  return text
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/__([^_]+)__/g, "<u>$1</u>")
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    .replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/^- (.*)$/gm, "<li>$1</li>")
+    .replace(/(<li>[\s\S]*?<\/li>)/g, "<ul>$1</ul>")
+    .replace(/\n{2,}/g, "<br><br>");
+}
+
+// AI mesajlarındaki web kartlarını formatla
+function formatWebCards(root) {
+  const txt = root.innerHTML;
+  root.innerHTML = txt
+    .replace(/─────────────────────────────/g, "<hr>")
+    .replace(/💎 \*\*(.*?)\*\*/g, '<div class="ai-section-title">$1</div>')
+    .replace(/📍 \*\*(.+?)\*\*<br>📰 \[(.+?)\]\((https?:\/\/[^\s)]+)\)<br>💬 ([\s\S]*?)<br>/g,
+      (_, domain, title, link, desc) => {
+        return `
+          <div class="ai-card">
+            <div class="ai-card-header">${domain}</div>
+            <div class="ai-card-body">
+              <a href="${link}" target="_blank" class="ai-card-title">${title}</a>
+              <p>${desc}</p>
+            </div>
+          </div>`;
+      });
+root.innerHTML = root.innerHTML.replace(
+  /🧠 \*\*Kısa Özet:\*\* (.+?)<br>/,
+  '<div class="ai-summary"><strong>🧠 Özet:</strong> $1</div>'
+);
+root.innerHTML = root.innerHTML.replace(
+  /📘 Kaynak: (https?:\/\/[^\s<]+)/,
+  '<div class="ai-sources">📘 Kaynak: <a href="$1" target="_blank">$1</a></div>'
+);
+}
+    let aktifSohbet = null;
+    const mesajAlani = document.getElementById("messages");
+    const mesajInput = document.getElementById("mesaj");
+    const sendBtn = document.getElementById("sendBtn");
+
+    // Mesaj kutusu otomatik yükseklik ayarı
+    mesajInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    // Enter tuşu ile gönderme
+    mesajInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        gonder();
+      }
+    });
+
+    // Sidebar toggle fonksiyonu
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('active');
+    }
+
+    async function sohbetleriYukle() {
+      try {
+        const r = await fetch("/api/sohbetler");
+        const data = await r.json();
+        const list = document.getElementById("chatList");
+        list.innerHTML = "";
+
+        if (data.length === 0) {
+          list.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 14px;">Henüz sohbet yok</div>';
+          return;
+        }
+
+        data.forEach(s => {
+          const btn = document.createElement("button");
+          btn.innerHTML = `<i class="fas fa-comment" style="color: var(--primary);"></i> ${s.title}`;
+          btn.onclick = () => sohbetAc(s.id);
+          if (s.id === aktifSohbet) btn.classList.add("active");
+          list.appendChild(btn);
+        });
+      } catch (error) {
+        console.error("Sohbetler yüklenirken hata:", error);
+      }
+    }
+
+    async function sohbetAc(id) {
+      try {
+        aktifSohbet = id;
+        mesajAlani.innerHTML = "";
+
+        // Loading state
+        mesajAlani.innerHTML = `
+          <div class="empty-state">
+            <div class="typing-indicator">
+              <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+            <p>Sohbet yükleniyor...</p>
+          </div>
+        `;
+
+        const r = await fetch(`/api/sohbet/${id}`);
+        const data = await r.json();
+
+        mesajAlani.innerHTML = "";
+        if (data.length === 0) {
+  mesajAlani.innerHTML = `
+    <div class="empty-state">
+      <div class="logo-large" style="width:180px;height:180px;margin:0 auto 24px;">
+        <img src="/static/img/logoo.png" alt="Sweax.AI Logo"
+             style="width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 0 8px rgba(0,0,0,0.35));">
+      </div>
+      <h2 style="font-size:22px;font-weight:700;color:#f5f5f5;margin-bottom:8px;">
+        Bu Sohbet Henüz Boş
+      </h2>
+      <p style="color:#a9a9a9;font-size:15px;max-width:380px;margin:0 auto;line-height:1.6;">
+        Sweax.AI ile konuşmaya başlamak için aşağıdaki kutuya mesajınızı yazın.
+      </p>
+    </div>
+  `;
+} else {
+
+          data.forEach(m => mesajEkle(m.role, m.content));
+        }
+
+        // Türk teması dekorasyonunu ekle
+        const pattern = document.createElement('div');
+        pattern.className = 'turkish-pattern';
+        mesajAlani.appendChild(pattern);
+
+        // Mobilde sidebar'ı kapat
+        if (window.innerWidth <= 900) {
+          document.getElementById('sidebar').classList.remove('active');
+        }
+
+        await sohbetleriYukle();
+      } catch (error) {
+        console.error("Sohbet açılırken hata:", error);
+        mesajAlani.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-exclamation-triangle" style="color: var(--primary);"></i>
+            <h2>Sohbet yüklenemedi</h2>
+            <p>Lütfen tekrar deneyin.</p>
+          </div>
+        `;
+      }
+    }
+
+    async function yeniSohbet() {
+      try {
+        sendBtn.disabled = true;
+        const r = await fetch("/api/yeni_sohbet", { method: "POST" });
+        const data = await r.json();
+
+        if (data.id) {
+          await sohbetAc(data.id);
+        }
+
+        await sohbetleriYukle();
+      } catch (error) {
+        console.error("Yeni sohbet oluşturulurken hata:", error);
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+function mesajEkle(rol, icerik) {
+  if (mesajAlani.querySelector('.empty-state')) {
+    mesajAlani.innerHTML = '';
+  }
+
+  const div = document.createElement("div");
+  div.className = `msg ${rol}`;
+
+  if (rol === 'ai') {
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble-ai';
+    mesajAlani.appendChild(div);
+    div.appendChild(bubble);
+
+    // typing efekti
+    const cursor = document.createElement('span');
+    cursor.className = 'typing';
+    bubble.appendChild(cursor);
+
+    let i = 0;
+    const text = markdownToHTML(icerik);
+    const interval = setInterval(() => {
+      cursor.remove();
+      bubble.innerHTML = text.slice(0, i) + '<span class="typing"></span>';
+      i++;
+      if (i > text.length) {
+        clearInterval(interval);
+        bubble.innerHTML = text;
+        formatWebCards(bubble);
+      }
+    }, 8); // hız 8ms = hızlı yazma
+  } else {
+    div.textContent = icerik;
+  }
+
+  mesajAlani.appendChild(div);
+  mesajAlani.scrollTop = mesajAlani.scrollHeight;
+}
+    async function gonder() {
+      const text = mesajInput.value.trim();
+      if (!text) return;
+
+      // Input'u temizle ve yüksekliği sıfırla
+      mesajInput.value = "";
+      mesajInput.style.height = 'auto';
+
+      // Boş durum ekranını kaldır
+      if (mesajAlani.querySelector('.empty-state')) {
+        mesajAlani.innerHTML = '';
+      }
+
+      // Kullanıcı mesajını ekle
+      mesajEkle("user", text);
+
+      // Typing indicator ekle
+      const typingDiv = document.createElement("div");
+      typingDiv.className = "typing-indicator";
+      typingDiv.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+      mesajAlani.appendChild(typingDiv);
+      mesajAlani.scrollTop = mesajAlani.scrollHeight;
+
+      // Butonu devre dışı bırak
+      sendBtn.disabled = true;
+
+      try {
+        const r = await fetch("/api/ai_mesaj", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mesaj: text, sohbet_id: aktifSohbet })
+        });
+
+        const data = await r.json();
+
+        // Typing indicator'ı kaldır
+        typingDiv.remove();
+
+        if (data.cevap) {
+          mesajEkle("ai", data.cevap);
+        } else {
+          mesajEkle("ai", "⚠️ Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.");
+        }
+
+        await sohbetleriYukle();
+      } catch (error) {
+        console.error("Mesaj gönderilirken hata:", error);
+        typingDiv.remove();
+        mesajEkle("ai", "⚠️ Bağlantı hatası. Lütfen internet bağlantınızı kontrol edin ve tekrar deneyin.");
+      } finally {
+        sendBtn.disabled = false;
+        mesajInput.focus();
+      }
+    }
+
+    // Sayfa yüklendiğinde sohbetleri yükle
+    document.addEventListener('DOMContentLoaded', function() {
+      sohbetleriYukle();
+    });
+  </script>
+</body>
+</html>

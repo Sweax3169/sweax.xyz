@@ -5,3 +5,4 @@ tzdata
 requests
 deepl
 pymysql
+bs4

@@ -6,7 +6,7 @@ import requests
 from urllib.parse import quote
 from datetime import datetime
 from zoneinfo import ZoneInfo
-
+from bs4 import BeautifulSoup
 # ---- Konfig / modüler bayraklar ----
 SWEAX_LIGHT = os.environ.get("SWEAX_LIGHT", "1") == "1"  # 1: en hafif mod
 HEADERS = {"User-Agent": "SweaxAI-lite/1.0 (+educational use)"}
@@ -104,6 +104,7 @@ def wiki_ozet_with_meta(konu: str, cumle: int = 6) -> dict | None:
             "type": tp
         }
     return None
+
 
 def wiki_ozet(konu: str, cumle: int = 6) -> str | None:
     meta = wiki_ozet_with_meta(konu, cumle=cumle)
@@ -253,3 +254,117 @@ def rag_cevap_uret(soru: str, model_cevap: str) -> str:
         if yeni:
             bilgi_kaydet(soru, yeni)
     return model_cevap
+
+# WEBDE ARAMA
+
+
+def web_ara_genel(soru: str, max_results: int = 3) -> str | None:
+    """
+    DuckDuckGo HTML arama (GET versiyonu) – Render uyumlu, daha dayanıklı sürüm
+    """
+    import requests
+    from bs4 import BeautifulSoup
+
+    try:
+        url = "https://duckduckgo.com/html/"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                          "AppleWebKit/537.36 (KHTML, like Gecko) "
+                          "Chrome/118.0.5993.70 Safari/537.36"
+        }
+
+        # GET kullanıyoruz çünkü POST bazen boş döndürüyor
+        resp = requests.get(url, params={"q": soru}, headers=headers, timeout=10)
+        html = resp.text
+        soup = BeautifulSoup(html, "html.parser")
+
+        results = []
+        for a in soup.select(".result__a"):
+            title = (a.text or "").strip()
+            href = a.get("href")
+            if href and href.startswith("http"):
+                results.append(f"🔗 [{title}]({href})")
+            if len(results) >= max_results:
+                break
+
+        if not results:
+            # Alternatif: Google fallback (proxy)
+            g_url = f"https://www.google.com/search?q={soru.replace(' ', '+')}"
+            return f"🌐 Sonuç bulunamadı. Şu sayfada aramayı deneyebilirsin:\n🔗 [Google'da Ara]({g_url})"
+
+        return "🌐 Web sonuçları:\n" + "\n".join(results)
+
+    except Exception as e:
+        return f"⚠️ Web arama hatası: {e}"
+
+
+def web_ara_serper(soru: str, max_results: int = 3) -> str | None:
+    """
+    Serper.dev Google Search API — Markdown tabanlı ChatGPT tarzı kart stili sonuç
+    """
+    import requests, os
+    SERPER_KEY = os.getenv("SERPER_KEY", "60616d6ea2b6da230c1930c4817a755439d44cba")
+
+    try:
+        headers = {"X-API-KEY": SERPER_KEY, "Content-Type": "application/json"}
+        payload = {"q": soru, "gl": "tr", "hl": "tr"}
+        r = requests.post("https://google.serper.dev/search", json=payload, headers=headers, timeout=10)
+        data = r.json()
+
+        if "organic" not in data:
+            return None
+
+        results = data["organic"][:max_results]
+        if not results:
+            return "🔍 Üzgünüm, bu konuda güncel bilgi bulunamadı."
+
+        # Başlık
+        yanit = [f"💎 **{soru.title()} (Güncel Bilgiler)**", "─────────────────────────────"]
+
+        # Sonuçları düzenle
+        for r in results:
+            baslik = r.get("title", "Kaynak").strip()
+            link = r.get("link", "")
+            aciklama = r.get("snippet", "").replace("\n", " ").strip()
+            if len(aciklama) > 220:
+                aciklama = aciklama[:220] + "…"
+
+            # Basit domain çıkarımı
+            domain = ""
+            if "://" in link:
+                domain = link.split("/")[2].replace("www.", "")
+
+            yanit.append(
+                f"📍 **{domain}**\n"
+                f"📰 [{baslik}]({link})\n"
+                f"💬 {aciklama}\n"
+                "─────────────────────────────"
+            )
+        # Sonuçları birleştirirken kısa özet üret
+        joined = " ".join(r.get("snippet", "") for r in results if r.get("snippet"))
+        if joined:
+            yanit += ["\n🧠 **Kısa Özet:** " + joined[:600] + "…"]
+        return "\n".join(yanit)
+
+    except Exception as e:
+        return f"⚠️ Web arama hatası: {e}"
+
+
+
+def _guncel_sorgu_mu(soru: str) -> bool:
+    s = soru.lower()
+    anahtarlar = [
+        "bugün", "şu an", "güncel", "fiyat", "nerede", "hangi", "trend", "popüler",
+        "oyunlar", "hava", "puan", "menü", "yeni çıkan", "en iyi", "yakın", "restoran"
+    ]
+    return any(k in s for k in anahtarlar)
+
+def web_fallback_ara(soru: str) -> str:
+
+    sonuc = web_ara_serper(soru)
+    if sonuc:
+        return sonuc
+    sonuc = web_ara_genel(soru)
+    if sonuc:
+        return sonuc
+    return "🌐 Bu konuda güvenilir bir kaynak bulunamadı."

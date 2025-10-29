@@ -8,6 +8,26 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import pymysql
 from pymysql.cursors import DictCursor
 from db_conn import get_db
+try:
+
+    from app.sweax_ai import mesajlari_getir
+except Exception:
+    from sweax_ai import mesajlari_getir
+
+try:
+
+    from app.sweax_ai import kullanici_sohbetlerini_getir
+except Exception:
+    from sweax_ai import kullanici_sohbetlerini_getir
+
+try:
+
+    from app.sweax_ai import yeni_sohbet_olustur
+except Exception:
+    from sweax_ai import yeni_sohbet_olustur
+
+
+
 # Yapay zekâ çekirdeği (senin mevcut fonksiyonun aynen kalıyor)
 try:
     # Render'da paketli klasörle çalışma
@@ -149,11 +169,67 @@ def giris():
             # Oturum: hem kimlik (id) hem görünen ad (kullaniciadi)
             session["user_id"] = row["id"]
             session["user"]    = row["kullaniciadi"]
-            return redirect(url_for("ai"))
+            return redirect(url_for("sweax_ai"))
         else:
             return render_template("login.html", err="Bilgiler hatalı.")
 
     return render_template("login.html")
+
+
+@app.route("/sweax.ai")
+def sweax_ai():
+    """Kullanıcı giriş yaptıysa AI arayüzünü açar."""
+    if "user_id" not in session:
+        return redirect(url_for("giris"))
+    return render_template("sweax_ai.html", kullanici=session["user"])
+
+# 📨 Mesaj gönderme (AJAX)
+@app.route("/api/ai_mesaj", methods=["POST"])
+def api_ai_mesaj():
+    if "user_id" not in session:
+        return jsonify({"error": "Giriş yapılmamış"}), 403
+
+    data = request.get_json()
+    metin = data.get("mesaj", "").strip()
+    if not metin:
+        return jsonify({"error": "Boş mesaj gönderilemez"}), 400
+
+    try:
+        # 🧠 Kullanıcı kimliğini de fonksiyona gönderiyoruz
+        cevap = konus(metin, kullanici_id=session["user_id"])
+        return jsonify({"cevap": cevap})
+    except Exception as e:
+        print("⚠️ Yapay zekâ hata:", e)
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/sohbet/<int:sohbet_id>")
+def api_sohbet_detay(sohbet_id):
+    if "user_id" not in session:
+        return jsonify([])
+
+    mesajlar = mesajlari_getir(sohbet_id, limit=50)
+    return jsonify(mesajlar)
+
+# 🧱 Sohbet listesini getir
+@app.route("/api/sohbetler")
+def api_sohbetler():
+    if "user_id" not in session:
+        return jsonify([])
+
+    sohbetler = kullanici_sohbetlerini_getir(session["user_id"])
+    return jsonify(sohbetler)
+
+
+# ➕ Yeni sohbet oluştur
+@app.route("/api/yeni_sohbet", methods=["POST"])
+def api_yeni_sohbet():
+    if "user_id" not in session:
+        return jsonify({"error": "Giriş yapılmamış"}), 403
+
+    sohbet_id = yeni_sohbet_olustur(session["user_id"])
+    return jsonify({"id": sohbet_id})
+
+
 
 @app.route("/cikis")
 def cikis():
@@ -161,16 +237,16 @@ def cikis():
     session.pop("user", None)
     return redirect(url_for("giris"))
 
-@app.route("/sweax.ai")
-def ai():
-    """
-    Girişten sonra açılan ana sohbet ekranı.
-    Bu sayfanın frontend'ini bir sonraki adımda birlikte yapacağız.
-    """
-    if "user_id" not in session:
-        return redirect(url_for("giris"))
-    # Şimdilik sadece kullanıcı adını şablona geçiyoruz.
-    return render_template("sweax.ai.html", user=session.get("user"))
+#@app.route("/sweax.ai")
+#def ai():
+#    """
+#    Girişten sonra açılan ana sohbet ekranı.
+#    Bu sayfanın frontend'ini bir sonraki adımda birlikte yapacağız.
+#    """
+#    if "user_id" not in session:
+#        return redirect(url_for("giris"))
+#    # Şimdilik sadece kullanıcı adını şablona geçiyoruz.
+#    return render_template("sweax.ai.html", user=session.get("user"))
 
 @app.route("/hub")
 def hub():
