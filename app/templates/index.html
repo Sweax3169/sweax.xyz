@@ -104,15 +104,14 @@
       50% { opacity: 1; }
     }
 
-    .falim {
-      position: absolute;
-      bottom: 40px;
-      font-size: clamp(28px, 4vw, 50px);
-      color: #666;
-      letter-spacing: 3px;
-      opacity: 0;
-      animation: fadeIn 6s ease 4s forwards, pulse 6s infinite 8s, rotate 20s linear infinite 6s;
-    }
+   .falim {
+  margin-top: 40px;
+  font-size: clamp(28px, 4vw, 50px);
+  color: #666;
+  letter-spacing: 3px;
+  opacity: 0;
+  animation: fadeIn 6s ease 4s forwards, pulse 6s infinite 8s;
+}
 
     @keyframes rotate {
       0% { transform: rotate(0); }
@@ -198,18 +197,19 @@
   <div class="floating-elements" id="floatingElements"></div>
   <div class="overlay"></div>
 
-  <div class="container">
-    <h1>Proje Bitmiştir</h1>
-    <div class="divider"></div>
-    <p>
-      Fişi çekilmiştir.<br>
-      <span class="fade-text">Heves, mutluluk, heyecan</span> — hepsi bitmiştir.<br>
-      Devam ettirmeye gerek yok.
-    </p>
+<div class="container">
+  <h1>Proje Bitmiştir</h1>
+  <div class="divider"></div>
+  <p>
+    Fişi çekilmiştir.<br>
+    <span class="fade-text">Heves, mutluluk, heyecan</span> — hepsi bitmiştir.<br>
+    Devam ettirmeye gerek yok.
+  </p>
+  <div class="falim">🍬 Falım</div>
+</div>
 
-  </div>
 
-  <div class="falim">🍬</div>
+
 
   <script>
     // Yıldız oluşturma
